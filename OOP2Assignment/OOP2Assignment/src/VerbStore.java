@@ -22,7 +22,11 @@ public class VerbStore extends WordStore {
     public String verbTransformation(String verb){
         if (verb.endsWith("e")) {
             verb = verb.substring(0, verb.length() - 1) + "ing";
-        } else {
+        }
+        if (verb.endsWith("ing")){
+            return verb;
+        }
+        else {
             verb = verb + "ing";
         }
         return verb;
@@ -35,3 +39,4 @@ public class VerbStore extends WordStore {
         super.add(key, item);
     }
 }
+
