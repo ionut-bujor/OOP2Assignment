@@ -9,16 +9,16 @@ public class Decrypt {
     private WordStore nouns = new WordStore("nouns.txt");
     private final int position = 0;
     private ArrayList<String> encrypted;
-    
+
     //public constructor
     public Decrypt(ArrayList<String> encrypted){
         this.encrypted = encrypted;
     }
-    
+
     //function which is used to decrypt a message inputted
     public String decrypt() throws WordStore.NotFoundInStore {
         if (encrypted == null || encrypted.isEmpty()) {
-            return "";
+            return null;
         }
         //variables needed for the function
         Collections.reverse(encrypted);
@@ -35,7 +35,9 @@ public class Decrypt {
         }
 
         //decrypt adverbs and verbs and add these to the final message
-        decryptedMessage.append(decryptVerbAndAdverbs());
+        if (!encrypted.isEmpty()) {
+            decryptedMessage.append(decryptVerbAndAdverbs());
+        }
         return decryptedMessage.toString();
     }
 
@@ -84,3 +86,4 @@ public class Decrypt {
         System.out.println(message);
     }
 }
+
