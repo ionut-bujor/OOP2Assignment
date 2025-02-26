@@ -20,20 +20,19 @@ public class Decrypt {
         if (encrypted == null || encrypted.isEmpty()) {
             return null;
         }
-        //variables needed for the function
+        //reverse the message for a simpler decryption
         Collections.reverse(encrypted);
         StringBuilder decryptedMessage = new StringBuilder();
-
+        
         //there always has to be a noun in every encrypted password
         decryptedMessage.append(decryptNoun());
         encrypted.remove(position);
-
+        
         //checking if there is an adjective in the encrypted message
         if (!encrypted.isEmpty()) {
             decryptedMessage.append(decryptAdj());
             encrypted.remove(position);
         }
-
         //decrypt adverbs and verbs and add these to the final message
         if (!encrypted.isEmpty()) {
             decryptedMessage.append(decryptVerbAndAdverbs());
@@ -44,19 +43,19 @@ public class Decrypt {
     //function to decrypt verbs and adverbs
     public String decryptVerbAndAdverbs() throws WordStore.NotFoundInStore {
         int amountOfVerbsAndAdverbs = encrypted.size();
-        int indexBeingChecked = 0;
-        boolean verbBeingChecked = true;
+        int index = 0;
+        boolean verbCheck = true;
         StringBuilder decryptedMsg = new StringBuilder();
-        while (indexBeingChecked < amountOfVerbsAndAdverbs) {
-            if (verbBeingChecked) {
-                String verb = encrypted.get(indexBeingChecked);
+        while (index < amountOfVerbsAndAdverbs) {
+            if (verbCheck) {
+                String verb = encrypted.get(index);
                 decryptedMsg.append(verbs.getKeyOfItem(verb)).append(" ");
             } else {
-                String adverb = encrypted.get(indexBeingChecked);
+                String adverb = encrypted.get(index);
                 decryptedMsg.append(adverbs.getKeyOfItem(adverb)).append(" ");
             }
-            indexBeingChecked++;
-            verbBeingChecked = !verbBeingChecked;
+            index++;
+            verbCheck = !verbCheck;
         }
         return decryptedMsg.toString();
     }
@@ -86,4 +85,3 @@ public class Decrypt {
         System.out.println(message);
     }
 }
-
