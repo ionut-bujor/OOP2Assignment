@@ -4,61 +4,75 @@ import java.util.List;
 
 public class Encrypt {
     //private attributes
-    private WordStore adjectiveStore;
-    private WordStore nounStore;
-    private VerbStore verbStore;
-    private WordStore adverbStore;
+    private WordStore adjectiveStore = new WordStore("adjectives.txt");
+    private WordStore nounStore =  new WordStore("nouns.txt");
+    private VerbStore verbStore = new VerbStore("verbs.txt");
+    private WordStore adverbStore = new WordStore("adverbs.txt");
+    private String message;
+    private int messageLength;
+
 
     //public constructor
-    public Encrypt() {
-        this.adjectiveStore = new WordStore("adjectives.txt");
-        this.nounStore = new WordStore("nouns.txt");
-        this.verbStore = new VerbStore("verbs.txt");
-        this.adverbStore = new WordStore("adverbs.txt");
+    public Encrypt(String message) {
+        this.message = message;
+        this.messageLength = message.length() -1;
     }
 
     //function that encrypts a message
-    public List<String> encrypt(String input)  {
+    public List<String> encrypt()  {
+        List<String> encryptedMsg = new ArrayList<>();
         //checking if the input is null
-        if (input == null || input.isEmpty()) {
+        if (message== null || message.isEmpty()) {
             throw new IllegalArgumentException("Input cannot be null or empty.");
         }
-
-        //variables needed for the function
-        List<String> encryptedMsg = new ArrayList<>();
-        int inputLength = input.length() - 1;
-        boolean adverbCondition = true;// dictates if a verb or an adverb is added
-
         //there is always a noun in the encrypted message
-        encryptedMsg.add(nounStore.getRandomItem(input.charAt(inputLength)));
-
+        encryptedMsg.add(encryptNoun());
         //checking if the input is big enough to add an adjective
-        if (inputLength > 0) {
-            encryptedMsg.add(adjectiveStore.getRandomItem(input.charAt(inputLength - 1)));
-            inputLength--;
+        if (messageLength > 0) {
+            encryptedMsg.add(encryptAdjective());
         }
-
-        //adding verbs and adverbs in a 1:1 fashion
-        while (inputLength > 0) {
-            char encryptedChar = input.charAt(inputLength);
-            if (adverbCondition) {
-                encryptedMsg.add(adverbStore.getRandomItem(encryptedChar));
-            } else {
-                encryptedMsg.add(verbStore.getRandomItem(encryptedChar));
-            }
-            adverbCondition = !adverbCondition;
-            inputLength--;
-        }
+        encryptedMsg.add(encryptVerbsAdverbs());
         Collections.reverse(encryptedMsg);
         return encryptedMsg;
     }
+    
+    //function to encrypt verbs and adverbs
+    public String encryptVerbsAdverbs(){
+        boolean adverbCondition = true;
+        StringBuilder encrypted = new StringBuilder();
+        while (messageLength > 0) {
+            char encryptedChar = message.charAt(messageLength);
+            if (adverbCondition) {
+                encrypted.append(adverbStore.getRandomItem(encryptedChar));
+            } else {
+                encrypted.append(verbStore.getRandomItem(encryptedChar));
+            }
+            adverbCondition = !adverbCondition;
+            messageLength--;
+        }
+        return encrypted.toString();
+    }
+
+    //function to encrypt the noun
+    public String encryptNoun(){
+        String encrypted = nounStore.getRandomItem(message.charAt(messageLength));
+        return encrypted;
+    }
+    
+    //function to encrypt the adjective
+    public String encryptAdjective(){
+        String encrypted = adjectiveStore.getRandomItem(message.charAt(messageLength));
+        messageLength--;
+        return encrypted;
+    }
 
     public static void main(String[] args) throws WordStore.NotFoundInStore {
-        String messageEncrypted = args[0];
-        Encrypt encryptInstance = new Encrypt();
-        List<String> encryptedWords = encryptInstance.encrypt(messageEncrypted);
+        String message = args[0];
+        Encrypt encryptInstance = new Encrypt(message);
+        List<String> encryptedWords = encryptInstance.encrypt();
         for (String word : encryptedWords) {
             System.out.println(word);
         }
     }
 }
+
