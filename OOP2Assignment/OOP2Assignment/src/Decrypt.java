@@ -7,44 +7,71 @@ public class Decrypt {
     private VerbStore verbs = new VerbStore("verbs.txt");
     private WordStore adverbs = new WordStore("adverbs.txt");
     private WordStore nouns = new WordStore("nouns.txt");
-
+    private final int position = 0;
+    private ArrayList<String> encrypted;
+    
+    //public constructor
+    public Decrypt(ArrayList<String> encrypted){
+        this.encrypted = encrypted;
+    }
+    
     //function which is used to decrypt a message inputted
-    public String decrypt(ArrayList<String> encryptedMessage) throws WordStore.NotFoundInStore {
-        if (encryptedMessage == null || encryptedMessage.isEmpty()) {
+    public String decrypt() throws WordStore.NotFoundInStore {
+        if (encrypted == null || encrypted.isEmpty()) {
             return "";
         }
         //variables needed for the function
-        int amountOfWords = encryptedMessage.size();
-        Collections.reverse(encryptedMessage);
-        int indexBeingChecked = 0;
-        boolean verbBeingChecked = true;
+        Collections.reverse(encrypted);
         StringBuilder decryptedMessage = new StringBuilder();
 
         //there always has to be a noun in every encrypted password
-        String noun = encryptedMessage.get(indexBeingChecked);
-        indexBeingChecked++;
-        decryptedMessage.append(nouns.getKeyOfItem(noun)).append(" ");
+        decryptedMessage.append(decryptNoun());
+        encrypted.remove(position);
 
         //checking if there is an adjective in the encrypted message
-        if (indexBeingChecked < amountOfWords) {
-            String adjective = encryptedMessage.get(indexBeingChecked);
-            decryptedMessage.append(adjectives.getKeyOfItem(adjective)).append(" ");
-            indexBeingChecked++;
+        if (!encrypted.isEmpty()) {
+            decryptedMessage.append(decryptAdj());
+            encrypted.remove(position);
         }
 
-        //iterating through the rest of the encrypting words in a verb/adverb way
-        while (indexBeingChecked < amountOfWords) {
+        //decrypt adverbs and verbs and add these to the final message
+        decryptedMessage.append(decryptVerbAndAdverbs());
+        return decryptedMessage.toString();
+    }
+
+    //function to decrypt verbs and adverbs
+    public String decryptVerbAndAdverbs() throws WordStore.NotFoundInStore {
+        int amountOfVerbsAndAdverbs = encrypted.size();
+        int indexBeingChecked = 0;
+        boolean verbBeingChecked = true;
+        StringBuilder decryptedMsg = new StringBuilder();
+        while (indexBeingChecked < amountOfVerbsAndAdverbs) {
             if (verbBeingChecked) {
-                String verb = encryptedMessage.get(indexBeingChecked);
-                decryptedMessage.append(verbs.getKeyOfItem(verb)).append(" ");
+                String verb = encrypted.get(indexBeingChecked);
+                decryptedMsg.append(verbs.getKeyOfItem(verb)).append(" ");
             } else {
-                String adverb = encryptedMessage.get(indexBeingChecked);
-                decryptedMessage.append(adverbs.getKeyOfItem(adverb)).append(" ");
+                String adverb = encrypted.get(indexBeingChecked);
+                decryptedMsg.append(adverbs.getKeyOfItem(adverb)).append(" ");
             }
             indexBeingChecked++;
             verbBeingChecked = !verbBeingChecked;
         }
-        return decryptedMessage.toString().trim();
+        return decryptedMsg.toString();
+    }
+
+    //function to decrypt the adjective in the encrypted message
+    public char decryptAdj() throws WordStore.NotFoundInStore{
+        char decrypt;
+        String adjective = encrypted.get(position);
+        decrypt = adjectives.getKeyOfItem(adjective);
+        return decrypt;
+    }
+
+    //function to decrypt the noun in the encrypted message
+    public char decryptNoun() throws WordStore.NotFoundInStore{
+        String noun = encrypted.get(position);
+        char decrypt=nouns.getKeyOfItem(noun);
+        return decrypt;
     }
 
     public static void main(String[] args) throws WordStore.NotFoundInStore {
@@ -52,8 +79,8 @@ public class Decrypt {
         for (String encryptedWords : args){
             encryptedMessage.add(encryptedWords);
         }
-        Decrypt decryptInstance = new Decrypt();
-        String message = decryptInstance.decrypt(encryptedMessage);
+        Decrypt decryptInstance = new Decrypt(encryptedMessage);
+        String message = decryptInstance.decrypt();
         System.out.println(message);
     }
 }
