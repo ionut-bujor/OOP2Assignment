@@ -4,21 +4,19 @@ public class VerbStore extends WordStore {
     private  Node head;
 
     //constructor (0 args)
-    public VerbStore(){
-        this.head = null;
-    }
+    public VerbStore(){super();}
 
     //constructor (file args)
-    public VerbStore (String fileName){
+    public VerbStore(String fileName) {
         super();
         ArrayList<String[]> keyItems = WordStore.processFiles(fileName);
-        for (String[] mapping: keyItems){
+        for (String[] mapping : keyItems) {
             char key = mapping[1].charAt(0);
             String item = mapping[0];
-            item = verbTransformation(item);
-            this.add(key,item);
+            this.add(key, item);
         }
     }
+
 
     //changing verbs from the infinitive form to a present continuous tense
     public String verbTransformation(String verb){
