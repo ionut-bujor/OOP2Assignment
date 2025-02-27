@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,6 +7,7 @@ import java.util.ArrayList;
 public class WordStore{
     //assigning private attributes
     private  Node head;
+    private String fileName;
 
     // public constructor (0 args)
     public WordStore() {
@@ -15,46 +15,46 @@ public class WordStore{
     }
 
     //process files into keys and items
-    public static ArrayList<String[]> processFiles(String fileName){
+    public static ArrayList<String[]> processFiles(String fileName) {
         ArrayList<String[]> keyItems = new ArrayList<>();
-        BufferedReader reader = null;
-        String line;
-        try{
-            //read through the file and assign the key and item to correct values
-            reader = new BufferedReader(new java.io.FileReader(fileName));
-            while ((line = reader.readLine()) != null){
-                String[] keyItem =  line.split(",");
-                keyItems.add(keyItem);
-            }
-        }
-        catch (FileNotFoundException e){
-            System.out.println("File not found!");
-        }
-        catch (IOException e ){
-            System.out.println("The file is empty!");
-        }
-        finally{
-            //making sure that the reader is closed after being opened
-            if (reader != null){
-                try{
-                    reader.close();
-                }
-                catch (IOException e){
-                    System.out.println("Error closing the buffer!");
-                }
-            }
-        }
+        try { keyItems = assignKeyAndItem(fileName);}
+        catch (FileNotFoundException e) {System.out.println("File not found: " + fileName);}
+        catch (IOException e) {System.out.println("Error reading the file: " + fileName);}
         return keyItems;
     }
 
     //public constructor (file args)
     public WordStore(String fileName) {
         this.head = null;
+        this.fileName = fileName;
         ArrayList<String[]> keyItems = processFiles(fileName);
+        assignMappingsFromFiles(keyItems);
+    }
+
+    public void assignMappingsFromFiles(ArrayList<String[]> keyItems){
         for (String[] mapping : keyItems){
             char key = mapping[1].charAt(0);
             String item = mapping[0];
             add(key,item);
+        }
+    }
+
+    private static ArrayList<String[]> assignKeyAndItem(String fileName) throws IOException {
+        String line;
+        ArrayList<String[]> keyItems = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new java.io.FileReader(fileName));
+        while ((line = reader.readLine()) != null) {
+            String[] keyItem = line.split(",");
+            keyItems.add(keyItem);
+        }
+        closeBufferedReader(reader);
+        return keyItems;
+    }
+
+    private static void closeBufferedReader(BufferedReader reader){
+        if (reader != null){
+            try{reader.close();}
+            catch (IOException e){System.out.println("Error closing the buffer!");}
         }
     }
 
@@ -68,44 +68,50 @@ public class WordStore{
         Node newMapping = new Node(key,item);
         Node current = this.head;
         if (this.head == null){
-            this.head = newMapping;
+            this.head = newMapping;}
+        else{setNewMapping(current,newMapping);}
+    }
+
+    public void setNewMapping(Node current,Node newMapping){
+        while (current.getNext() !=null){
+            current = current.getNext();
         }
-        else{
-            while (current.getNext() !=null){
-                current = current.getNext();
-            }
-            current.setNext(newMapping);
-        }
+        current.setNext(newMapping);
+
     }
 
     //returning a random item associated with key
     public String getRandomItem (char key)  {
-        //assigning variables needed for the function
         key = Character.toLowerCase(key);
-        ArrayList<String> associatedItems = new ArrayList<>();
-        Node current = this.head;
+        ArrayList<String> associatedItems = createAssociatedItemsWithKey(key);
+        if (associatedItems.isEmpty()){return null;}
+        String randomItem = getRandomItemAtIndex(associatedItems);
+        return randomItem;
+    }
+
+    public String getRandomItemAtIndex(ArrayList<String> associatedItems){
         Random rand = new Random();
-        //allocating all the items with key specified to an array list
-        while (current != null){
-            if (current.getKey() == key){
-                associatedItems.add(current.getItem());
-            }
-            current = current.getNext();
-        }
-        if (associatedItems.isEmpty()){
-            return null;
-        }
-        //no key mappings
         int noOfMappings = associatedItems.size();
-        //generating a random integer which is used as an index to find a random item
         int randIndex = rand.nextInt(noOfMappings);
         String randomItem = associatedItems.get(randIndex);
         randomItem = randomItem.toLowerCase();
         return randomItem;
     }
 
+    public ArrayList<String> createAssociatedItemsWithKey(char key){
+        ArrayList<String> associatedItems = new ArrayList<>();
+        Node current =  this.head;
+        while (current != null){
+            if (current.getKey() == key){
+                associatedItems.add(current.getItem());
+            }
+            current = current.getNext();
+        }
+        return associatedItems;
+    }
+
     //function to retrieve the associated key to an item
-    public char getKeyOfItem(String item) throws NotFoundInStore {
+    public char getKeyOfItem(String item) throws MappingNotFoundInStore {
         Node current = this.head;
         while (current != null) {
             if (current.getItem().equals(item)) {
@@ -113,11 +119,11 @@ public class WordStore{
             }
             current = current.getNext();
         }
-        throw new NotFoundInStore("Item is not in the store");
+        throw new MappingNotFoundInStore("Item is not in the store");
     }
 
     //function for testing to check that elements which have been added are actually within the store
-    public boolean checkInstancesOfItem(char key,String item) throws NotFoundInStore {
+    public boolean checkInstancesOfItem(char key,String item) throws MappingNotFoundInStore {
         Node current = this.head;
         while(current != null){
             if (current.getItem().equals(item) && current.getKey() == key){
@@ -125,7 +131,7 @@ public class WordStore{
             }
             current = current.getNext();
         }
-        throw new NotFoundInStore("Item was not added to the store");
+        throw new MappingNotFoundInStore("Item was not added to the store");
     }
 
     //overriding the toString method to make a cleaner more readable string output
@@ -141,8 +147,8 @@ public class WordStore{
     }
 
     //exception to show that something is not in the list
-    class NotFoundInStore extends Exception{
-        public NotFoundInStore(String message){
+    class MappingNotFoundInStore extends Exception{
+        public MappingNotFoundInStore(String message){
             super(message);
         }
     }
