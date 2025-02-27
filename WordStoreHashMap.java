@@ -8,7 +8,6 @@ import java.util.ArrayList;
 public class WordStore{
     //assigning private attributes
     private HashMap<Character,LinkedList> wordStore;
-    private String fileName;
 
     // public constructor (0 args)
     public WordStore() {
