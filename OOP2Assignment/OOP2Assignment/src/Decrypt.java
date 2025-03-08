@@ -3,92 +3,124 @@ import java.util.Collections;
 
 public class Decrypt {
     //private attributes
-    private WordStore adjectives = new WordStore("adjectives.txt");
-    private VerbStore verbs = new VerbStore("verbs.txt");
-    private WordStore adverbs = new WordStore("adverbs.txt");
-    private WordStore nouns = new WordStore("nouns.txt");
-    private final int position = 0;
+    private final WordStore adjectives = new WordStore("adjectives.txt");
+    private final WordStore verbs = new VerbStore("verbs.txt");
+    private final WordStore adverbs = new WordStore("adverbs.txt");
+    private final WordStore nouns = new WordStore("nouns.txt");
     private ArrayList<String> encrypted;
+    private int indexBeingDecrypted = 0;
+
+    private WordStore getVerbs(){
+        return this.verbs;
+    }
+    private WordStore getAdverbs(){
+        return this.adverbs;
+    }
+    private WordStore getAdjectives(){
+        return this.adjectives;
+    }
+    private WordStore getNouns(){
+        return this.nouns;
+    }
 
     //public constructor
     public Decrypt(ArrayList<String> encrypted){
         this.encrypted = encrypted;
+        Collections.reverse(encrypted);
     }
 
-    //function which is used to decrypt a message inputted
-    public String decrypt() throws WordStore.NotFoundInStore {
-        if (encrypted == null || encrypted.isEmpty()) {
+    //function to decrypt the message inputted by the user
+    public String decrypt() throws WordStore.MappingNotFoundInStore {
+        if (this.encrypted == null || this.encrypted.isEmpty()) {
             return null;
         }
-        Collections.reverse(encrypted);
-        StringBuilder decryptedMessage = new StringBuilder();
-        decryptedMessage.append(decryptWordTypes());
-        return decryptedMessage.reverse().toString();
+        String decryptedMessage = decryptWordTypes();
+        return decryptedMessage;
     }
 
     //function to decrypt verbs and adverbs
-    public String decryptVerbAndAdverbs() throws WordStore.NotFoundInStore {
-        int index = 0;
-        boolean verbCheck = true;
+    public String decryptVerbAndAdverbs() throws WordStore.MappingNotFoundInStore {
+        boolean verbCheck = false;
         StringBuilder decryptedMsg = new StringBuilder();
-
-        while (index <encrypted.size()) {
-            if (verbCheck) {decryptedMsg.append(decryptVerb(index));}
-            else {decryptedMsg.append(decryptAdverb(index));}
-            index++;
+        for (int index = 2; index < this.encrypted.size(); index++) {
+            if (verbCheck) {
+                decryptedMsg.append(decryptVerb(index));
+            } else {
+                decryptedMsg.append(decryptAdverb(index));
+            }
             verbCheck = !verbCheck;
         }
         return decryptedMsg.toString();
     }
 
     //function to decrypt verbs
-    public char decryptVerb(int index) throws WordStore.NotFoundInStore{
-        String verb = encrypted.get(index);
-        char decrypt = verbs.getKeyOfItem(verb);
-        return decrypt;
+    public Character decryptVerb(int index) throws WordStore.MappingNotFoundInStore {
+        if (validateIndexBounds()) {
+            String verb = this.encrypted.get(index);
+            char decryptVerb = getVerbs().getKeyOfItem(verb);
+            return decryptVerb;
+        }
+        else return null;
     }
 
     //function to decrypt adverbs
-    public char decryptAdverb(int index) throws WordStore.NotFoundInStore{
-        String adverb = encrypted.get(index);
-        char decrypt = adverbs.getKeyOfItem(adverb);
-        return decrypt;
+    public Character decryptAdverb(int index) throws WordStore.MappingNotFoundInStore {
+        if (validateIndexBounds()) {
+            String adverb = this.encrypted.get(index);
+            char decrypt = getAdverbs().getKeyOfItem(adverb);
+            return decrypt;
+        }
+        else return null;
+    }
 
+    //function to decrypt the adjective in the encrypted message
+    public Character decryptAdj() throws WordStore.MappingNotFoundInStore {
+        if (validateIndexBounds()) {
+            String adjective = this.encrypted.get(indexBeingDecrypted);
+            char decrypt = getAdjectives().getKeyOfItem(adjective);
+            indexBeingDecrypted++;
+            return decrypt;
+        }
+        else return null;
+    }
+
+    //function to decrypt the noun in the encrypted message
+    public Character decryptNoun() throws WordStore.MappingNotFoundInStore {
+        String noun = this.encrypted.get(indexBeingDecrypted);
+        char decrypt = getNouns().getKeyOfItem(noun);
+        indexBeingDecrypted ++;
+        return decrypt;
     }
 
     //function to decrypt all words
-    public String decryptWordTypes() throws WordStore.NotFoundInStore{
+    public String decryptWordTypes() throws WordStore.MappingNotFoundInStore {
         StringBuilder decrypted = new StringBuilder();
         decrypted.append(decryptNoun());
         decrypted.append(decryptAdj());
         decrypted.append(decryptVerbAndAdverbs());
-        return decrypted.toString();
+        return decrypted.reverse().toString();
     }
 
-    //function to decrypt the adjective in the encrypted message
-    public char decryptAdj() throws WordStore.NotFoundInStore{
-        char decrypt;
-        String adjective = encrypted.get(position);
-        decrypt = adjectives.getKeyOfItem(adjective);
-        encrypted.remove(position);
-        return decrypt;
+    public boolean validateIndexBounds(){
+        if (indexBeingDecrypted >= this.encrypted.size()){
+            return false;
+        }
+        else return true;
     }
 
-    //function to decrypt the noun in the encrypted message
-    public char decryptNoun() throws WordStore.NotFoundInStore{
-        String noun = encrypted.get(position);
-        char decrypt=nouns.getKeyOfItem(noun);
-        encrypted.remove(position);
-        return decrypt;
-    }
-
-    public static void main(String[] args) throws WordStore.NotFoundInStore {
+    public static void main(String[] args) throws WordStore.MappingNotFoundInStore {
         ArrayList<String> encryptedMessage = new ArrayList<>();
-        for (String encryptedWords : args){
+        if (args.length == 0){
+            throw new IllegalArgumentException("The message can't be null.");
+        }
+
+        for (String encryptedWords : args) {
             encryptedMessage.add(encryptedWords);
         }
+
         Decrypt decryptInstance = new Decrypt(encryptedMessage);
         String message = decryptInstance.decrypt();
         System.out.println(message);
     }
 }
+// Error running test testQ4_Decrypt. Caused by java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0 at Preconditions.java:100
